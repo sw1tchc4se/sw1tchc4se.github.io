@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sw1tchc4se · 404</title>
+  <script>
+    (function () {
+      var s = localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", s);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="notfound">
+      <h1>404</h1>
+      <p style="font-size:1.2rem;color:var(--muted)">
+        <span data-icon="leaf"></span> this petal drifted somewhere off the path
+      </p>
+      <p><a class="btn" href="/"><span data-icon="sprout"></span> take me home</a></p>
+    </div>
+  </main>
+
+  <script src="/js/blog.js"></script>
+  <script>buildChrome("");</script>
+</body>
+</html>

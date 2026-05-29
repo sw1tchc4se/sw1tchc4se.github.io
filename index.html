@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sw1tchc4se · home</title>
+  <meta name="description" content="sw1tchc4se's personal blog &lt;3" />
+  <meta name="google-site-verification" content="fWLO2Uzx5_jsyunKUlAKKFhz26lNTzGG1gmHihlMR6w" />
+  <link rel="canonical" href="https://sw1tchc4se.github.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="sw1tchc4se" />
+  <meta property="og:title" content="sw1tchc4se" />
+  <meta property="og:description" content="sw1tchc4se's personal blog &lt;3" />
+  <meta property="og:url" content="https://sw1tchc4se.github.io/" />
+  <meta property="og:image" content="https://sw1tchc4se.github.io/assets/avatar.png" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    (function () {
+      var s = localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", s);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <section class="hero">
+    <div class="sparkles" aria-hidden="true">
+      <span class="spark s1"></span>
+      <span class="spark s2"></span>
+      <span class="spark s3"></span>
+      <span class="spark s4"></span>
+      <span class="spark s5"></span>
+      <span class="spark s6"></span>
+      <span class="spark s7"></span>
+      <span class="spark s8"></span>
+      <span class="spark s9"></span>
+    </div>
+
+    <div class="container">
+      <h1><span class="glyph">~</span> <span id="hero-name">sw1tchc4se</span></h1>
+      <p class="tagline" id="hero-tagline"></p>
+      <div class="status-widget" id="hero-status"></div>
+    </div>
+  </section>
+
+  <main class="container">
+    <section class="section" id="pinned-section" style="display:none">
+      <h2 class="section-title"><span data-icon="pin"></span> pinned</h2>
+      <div class="cards" id="pinned"></div>
+    </section>
+
+    <div class="divider"><span data-icon="petal"></span></div>
+
+    <section class="section">
+      <h2 class="section-title"><span data-icon="sprout"></span> recent posts</h2>
+      <div class="cards" id="recent"><p class="loading">loading posts…</p></div>
+      <p style="margin-top:22px"><a class="btn ghost" href="posts/">browse all posts →</a></p>
+    </section>
+  </main>
+
+  <script src="js/blog.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sw1tchc4se.github.io/sitemap.xml

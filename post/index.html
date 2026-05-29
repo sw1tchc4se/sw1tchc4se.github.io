@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sw1tchc4se · post</title>
+  <meta name="description" content="A post on sw1tchc4se's blog." />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="sw1tchc4se" />
+  <meta property="og:title" content="sw1tchc4se" />
+  <meta property="og:description" content="A post on sw1tchc4se's blog." />
+  <meta property="og:image" content="https://sw1tchc4se.github.io/assets/avatar.png" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    (function () {
+      var s = localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", s);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+</head>
+<body>
+  <main class="container">
+    <div id="article"><p class="loading">loading post…</p></div>
+  </main>
+
+  <script src="../js/blog.js"></script>
+  <script src="../js/post.js"></script>
+</body>
+</html>
