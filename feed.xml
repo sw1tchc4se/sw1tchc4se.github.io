@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>sw1tchc4se</title>
+    <link>https://sw1tchc4se.github.io/</link>
+    <description>notes on security, tooling, and the occasional rabbit hole</description>
+    <item>
+      <title>pwnable.kr: fd, collision &amp; buffer overflow</title>
+      <link>https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/</link>
+      <guid isPermaLink="true">https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/</guid>
+      <pubDate>2026-06-01</pubDate>
+      <description>The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer.</description>
+    </item>
+  </channel>
+</rss>

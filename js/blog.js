@@ -194,7 +194,7 @@ function tagPills(tags, { link = false } = {}) {
 
 function postCard(p, { pinned = false } = {}) {
   return `
-    <a class="card ${pinned ? "pinned" : ""}" href="${ROOT}post/?post=${encodeURIComponent(p.slug)}">
+    <a class="card ${pinned ? "pinned" : ""}" href="${ROOT}post/${encodeURIComponent(p.slug)}/">
       ${pinned ? `<span class="pin-badge">${icon("pin")} pinned</span>` : ""}
       <h3>${p.title}</h3>
       <div class="meta"><span>${icon("calendar")} ${formatDate(p.date)}</span></div>

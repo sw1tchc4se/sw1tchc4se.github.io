@@ -57,7 +57,7 @@
       .map(
         (p) => `
         <div class="timeline-item">
-          <a class="card" href="${ROOT}post/?post=${encodeURIComponent(p.slug)}">
+          <a class="card" href="${ROOT}post/${encodeURIComponent(p.slug)}/">
             <h3>${p.title}</h3>
             <div class="meta"><span>${icon("calendar")} ${formatDate(p.date)}</span></div>
             <p>${p.excerpt}</p>

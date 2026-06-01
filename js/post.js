@@ -1,7 +1,7 @@
 (async function () {
   buildChrome("");
 
-  const slug = new URLSearchParams(location.search).get("post");
+  const slug = window.__POST_SLUG__ || new URLSearchParams(location.search).get("post");
   const article = document.getElementById("article");
 
   if (!slug) {
@@ -26,8 +26,9 @@
   setMeta("name", "description", post.excerpt || post.title);
   setMeta("property", "og:title", `${post.title} · ${SITE.name}`);
   setMeta("property", "og:description", post.excerpt || post.title);
-  setMeta("property", "og:url", location.href);
-  setCanonical(location.href);
+  const cleanUrl = `${ROOT}post/${slug}/`;
+  setMeta("property", "og:url", cleanUrl);
+  setCanonical(cleanUrl);
 
   const { minutes, cups } = readingCoffees(post.content);
   const bodyHtml = marked.parse(post.content);

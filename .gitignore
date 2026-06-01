@@ -7,6 +7,9 @@ Thumbs.db
 # logs
 *.log
 
-# local Claude Code config (not part of the site)
+# local editor/agent config (not part of the site)
 .claude/
 README.md
+
+# local-only scratch / drafts (never uploaded)
+_local/
