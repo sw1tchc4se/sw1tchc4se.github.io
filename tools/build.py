@@ -18,6 +18,7 @@ so this script supersedes tools/gen-sitemap.py.
 
 Pure standard library, no dependencies — same as the rest of tools/.
 """
+import hashlib
 import html
 import json
 import os
@@ -36,6 +37,41 @@ POSTS_DIR = os.path.join(ROOT, "content", "posts")
 POST_OUT = os.path.join(ROOT, "post")
 TODAY = date.today().isoformat()
 MARKER = "<!-- prerendered by tools/build.py -->"
+
+# Local assets that need cache-busting when their contents change. ASSET_VER is
+# a short hash of these files, set in main() and appended as ?v=… to every CSS/JS
+# link so browsers always re-fetch after a change instead of serving a stale copy.
+ASSET_FILES = ["css/style.css", "js/blog.js", "js/home.js", "js/posts.js", "js/post.js"]
+ASSET_VER = "0"
+# matches local css/js links in any page, with or without an existing ?v=…
+ASSET_LINK_RE = re.compile(
+    r'((?:href|src)="[^"]*?(?:css/style\.css|js/blog\.js|js/home\.js|js/posts\.js|js/post\.js))(\?v=[0-9a-f]+)?(")'
+)
+
+
+def asset_version():
+    h = hashlib.sha1()
+    for rel in ASSET_FILES:
+        p = os.path.join(ROOT, rel)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:8]
+
+
+def stamp_static_pages(version):
+    """Rewrite ?v=… on the hand-written HTML pages (build.py regenerates the
+    post pages itself, so they get the version baked straight into the template)."""
+    pages = ["index.html", "404.html", "posts/index.html", "about/index.html", "post/index.html"]
+    for rel in pages:
+        path = os.path.join(ROOT, rel)
+        if not os.path.exists(path):
+            continue
+        txt = open(path, encoding="utf-8").read()
+        new = ASSET_LINK_RE.sub(rf"\1?v={version}\3", txt)
+        if new != txt:
+            open(path, "w", encoding="utf-8").write(new)
+            print(f"  ~ stamped {rel}")
 
 
 # --------------------------------------------------------------------------
@@ -336,7 +372,7 @@ def render_page(post, posts):
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="../../css/style.css?v={ASSET_VER}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
@@ -371,8 +407,8 @@ def render_page(post, posts):
     window.__POST_SLUG__ = {json.dumps(slug)};
     window.__PRERENDERED__ = true;
   </script>
-  <script defer src="../../js/blog.js"></script>
-  <script defer src="../../js/post.js"></script>
+  <script defer src="../../js/blog.js?v={ASSET_VER}"></script>
+  <script defer src="../../js/post.js?v={ASSET_VER}"></script>
 </body>
 </html>
 """
@@ -485,9 +521,12 @@ def clean_stale(slugs):
 
 
 def main():
+    global ASSET_VER
+    ASSET_VER = asset_version()
     posts = load_posts()
     slugs = {p["slug"] for p in posts}
     clean_stale(slugs)
+    stamp_static_pages(ASSET_VER)
     for p in posts:
         out_dir = os.path.join(POST_OUT, p["slug"])
         os.makedirs(out_dir, exist_ok=True)
