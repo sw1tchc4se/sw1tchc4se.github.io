@@ -17,7 +17,8 @@
   --radius-pill: 999px;
   --font-body: "Nunito", system-ui, -apple-system, sans-serif;
   --font-head: "Fraunces", Georgia, serif;
-  --maxw: 1040px;
+  --maxw: 860px;
+  --maxw-post: 1040px;
 }
 
 [data-theme="dark"] {
@@ -50,7 +51,15 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* clip stray horizontal overflow without breaking the sticky header
+     (clip, unlike hidden, doesn't create a scroll container) */
+  overflow-x: clip;
 }
+
+/* post pages get a wider column (the table-of-contents sidebar fills it);
+   the header matches so brand + content stay left-aligned */
+.post-page .nav,
+.post-page main.container { max-width: var(--maxw-post); }
 
 h1, h2, h3, h4 {
   font-family: var(--font-head);
@@ -206,7 +215,7 @@ img { max-width: 100%; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .divider .icon { width: 26px; height: 26px; color: var(--secondary); }
 
-.cards { display: grid; gap: 18px; grid-template-columns: minmax(0, 640px); }
+.cards { display: grid; gap: 18px; grid-template-columns: minmax(0, 760px); }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
