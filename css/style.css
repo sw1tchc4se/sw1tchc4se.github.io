@@ -38,7 +38,9 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* stop any stray element from making the page wider than the screen
+   (the usual cause of "I can scroll sideways" on phones) */
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -51,9 +53,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* clip stray horizontal overflow without breaking the sticky header
-     (clip, unlike hidden, doesn't create a scroll container) */
-  overflow-x: clip;
 }
 
 /* post pages get a wider column (the table-of-contents sidebar fills it);
