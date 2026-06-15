@@ -347,38 +347,51 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
   overflow-x: auto;
   margin: 0;
   box-shadow: var(--shadow);
+  tab-size: 4;
+  -moz-tab-size: 4;
 }
 [data-theme="dark"] .prose pre { background: #1b1421; border: 1px solid var(--border); }
 
 .code-wrap { position: relative; margin: 0 0 20px; }
 .copy-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  color: #f3ede0;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cfc6d8;
   border-radius: 8px;
-  padding: 4px 10px;
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
+.copy-btn svg { width: 15px; height: 15px; display: block; }
 .code-wrap:hover .copy-btn,
 .copy-btn:focus-visible { opacity: 1; }
-.copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
+.copy-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 .copy-btn.copied { color: var(--primary); border-color: var(--primary); opacity: 1; }
-@media (hover: none) { .copy-btn { opacity: 1; } }
+/* touch devices can't hover, so keep it gently visible */
+@media (hover: none) { .copy-btn { opacity: 0.85; } }
 .prose pre code { background: none; padding: 0; color: #f3ede0; font-size: 0.88rem; }
 .prose a { text-decoration: underline; text-underline-offset: 3px; }
 .prose img { border-radius: var(--radius-sm); box-shadow: var(--shadow); }
 .prose table { width: 100%; border-collapse: collapse; margin: 0 0 18px; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
 .prose th { background: color-mix(in srgb, var(--secondary) 22%, transparent); }
+
+/* phones: smaller body + code so more fits before horizontal scrolling kicks in */
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .container { padding: 0 16px; }
+  .prose { font-size: 1rem; }
+  .prose pre { padding: 16px 14px; tab-size: 2; -moz-tab-size: 2; }
+  .prose pre code { font-size: 0.8rem; }
+}
 
 .reactions {
   display: flex; gap: 10px; flex-wrap: wrap;

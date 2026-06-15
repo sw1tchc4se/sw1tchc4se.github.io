@@ -102,6 +102,11 @@
     root.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
   }
 
+  const COPY_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  const CHECK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
   function addCopyButtons(root) {
     root.querySelectorAll("pre").forEach((pre) => {
       if (pre.parentElement.classList.contains("code-wrap")) return;
@@ -113,15 +118,17 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "copy-btn";
-      btn.textContent = "copy";
+      btn.innerHTML = COPY_SVG;
       btn.setAttribute("aria-label", "copy code to clipboard");
       btn.addEventListener("click", () => {
         navigator.clipboard.writeText(pre.innerText).then(() => {
-          btn.textContent = "copied!";
+          btn.innerHTML = CHECK_SVG;
           btn.classList.add("copied");
+          btn.setAttribute("aria-label", "copied");
           setTimeout(() => {
-            btn.textContent = "copy";
+            btn.innerHTML = COPY_SVG;
             btn.classList.remove("copied");
+            btn.setAttribute("aria-label", "copy code to clipboard");
           }, 1500);
         });
       });
