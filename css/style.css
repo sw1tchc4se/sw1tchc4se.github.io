@@ -244,11 +244,13 @@ img { max-width: 100%; }
   background: color-mix(in srgb, var(--secondary) 28%, transparent);
   color: var(--text);
   border: 1px solid transparent;
-  cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
   user-select: none;
 }
-.tag:hover { transform: translateY(-2px); text-decoration: none; }
+/* only interactive tags (post-page links, the posts-list filter) get the
+   pointer + hover lift; inert tags inside cards/skills stay static */
+a.tag, .filter-row .tag { cursor: pointer; }
+a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decoration: none; }
 .tag.active { background: var(--primary); color: var(--on-primary); }
 .tag::before { content: "#"; opacity: 0.55; }
 
@@ -295,6 +297,9 @@ img { max-width: 100%; }
 .card .meta .icon { width: 1em; height: 1em; }
 
 .post-layout { display: grid; grid-template-columns: 1fr; gap: 30px; }
+/* grid items default to min-width:auto, which lets a long <pre> line stretch
+   the track wider than the viewport; let them shrink so pre's overflow-x works */
+.post-layout > * { min-width: 0; }
 @media (min-width: 1000px) {
   .post-layout { grid-template-columns: 1fr 220px; align-items: start; }
   .toc { position: sticky; top: 90px; order: 2; }
@@ -340,10 +345,34 @@ img { max-width: 100%; }
   border-radius: var(--radius-sm);
   padding: 18px 20px;
   overflow-x: auto;
-  margin: 0 0 20px;
+  margin: 0;
   box-shadow: var(--shadow);
 }
 [data-theme="dark"] .prose pre { background: #1b1421; border: 1px solid var(--border); }
+
+.code-wrap { position: relative; margin: 0 0 20px; }
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f3ede0;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.code-wrap:hover .copy-btn,
+.copy-btn:focus-visible { opacity: 1; }
+.copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
+.copy-btn.copied { color: var(--primary); border-color: var(--primary); opacity: 1; }
+@media (hover: none) { .copy-btn { opacity: 1; } }
 .prose pre code { background: none; padding: 0; color: #f3ede0; font-size: 0.88rem; }
 .prose a { text-decoration: underline; text-underline-offset: 3px; }
 .prose img { border-radius: var(--radius-sm); box-shadow: var(--shadow); }

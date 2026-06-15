@@ -128,11 +128,34 @@ let _postsCache = null;
 
 async function loadAllPosts() {
   if (_postsCache) return _postsCache;
+
+  // Fast path: a single prebuilt metadata file (written by tools/build.py).
+  try {
+    const res = await fetch(`${ROOT}content/posts/posts-index.json`);
+    if (res.ok) {
+      const index = await res.json();
+      _postsCache = index
+        .map((p) => ({
+          slug: p.slug,
+          title: p.title || p.slug,
+          date: p.date || "",
+          tags: p.tags || [],
+          pinned: !!p.pinned,
+          excerpt: p.excerpt || "",
+        }))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      return _postsCache;
+    }
+  } catch (e) {
+    /* fall through to fetching the markdown directly */
+  }
+
+  // Fallback (e.g. build.py hasn't been run yet): read every .md front-matter.
   const manifest = await fetch(`${ROOT}content/posts/posts.json`).then((r) => r.json());
   const posts = await Promise.all(
     manifest.map(async (slug) => {
       const raw = await fetch(`${ROOT}content/posts/${slug}.md`).then((r) => r.text());
-      const { data, content } = parseFrontmatter(raw);
+      const { data } = parseFrontmatter(raw);
       return {
         slug,
         title: data.title || slug,
@@ -141,7 +164,6 @@ async function loadAllPosts() {
         pinned: !!data.pinned,
         draft: !!data.draft,
         excerpt: data.excerpt || "",
-        content,
       };
     })
   );
@@ -186,8 +208,8 @@ function tagPills(tags, { link = false } = {}) {
   return tags
     .map((t) =>
       link
-        ? `<a class="tag" href="${ROOT}posts/?tag=${encodeURIComponent(t)}">${t}</a>`
-        : `<span class="tag">${t}</span>`
+        ? `<a class="tag" href="${ROOT}posts/?tag=${encodeURIComponent(t)}">${escapeHtml(t)}</a>`
+        : `<span class="tag">${escapeHtml(t)}</span>`
     )
     .join("");
 }
@@ -196,9 +218,9 @@ function postCard(p, { pinned = false } = {}) {
   return `
     <a class="card ${pinned ? "pinned" : ""}" href="${ROOT}post/${encodeURIComponent(p.slug)}/">
       ${pinned ? `<span class="pin-badge">${icon("pin")} pinned</span>` : ""}
-      <h3>${p.title}</h3>
+      <h3>${escapeHtml(p.title)}</h3>
       <div class="meta"><span>${icon("calendar")} ${formatDate(p.date)}</span></div>
-      <p>${p.excerpt}</p>
+      <p>${escapeHtml(p.excerpt)}</p>
       <div class="tags">${tagPills(p.tags)}</div>
     </a>`;
 }

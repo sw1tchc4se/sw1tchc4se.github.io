@@ -1,0 +1,14 @@
+[
+  {
+    "slug": "pwnable-fd-col-bof",
+    "title": "pwnable.kr: fd, collision & buffer overflow",
+    "date": "2026-06-01",
+    "tags": [
+      "writeup",
+      "pwn",
+      "pwnable"
+    ],
+    "pinned": false,
+    "excerpt": "The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer."
+  }
+]

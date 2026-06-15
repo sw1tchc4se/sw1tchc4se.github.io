@@ -9,6 +9,19 @@
     return;
   }
 
+  // Pages written by tools/build.py already contain the rendered article, its
+  // metadata and (when relevant) the related list. In that case we only need to
+  // *enhance* the existing DOM — no re-parsing the markdown, no marked.js.
+  if (window.__PRERENDERED__) {
+    const prose = document.getElementById("prose");
+    highlightCode(prose);
+    addCopyButtons(prose);
+    buildTOC();
+    buildReactions();
+    return;
+  }
+
+  // ---- fallback: no prerendered HTML, render the post on the client ----
   let post, allPosts;
   try {
     [post, allPosts] = await Promise.all([loadPost(slug), loadAllPosts()]);
@@ -36,7 +49,7 @@
   article.innerHTML = `
     <header class="post-header">
       <a class="back-link" href="${ROOT}posts/">← all posts</a>
-      <h1>${post.title}</h1>
+      <h1>${escapeHtml(post.title)}</h1>
       <div class="post-meta">
         <span>${icon("calendar")} ${formatDate(post.date)}</span>
         <span class="coffee" title="~${minutes} min read">${icon("coffee").repeat(cups)} ${minutes} min</span>
@@ -63,11 +76,58 @@
       <div class="cards" id="related"></div>
     </section>`;
 
-  document.querySelectorAll("#prose pre code").forEach((block) => hljs.highlightElement(block));
-
+  highlightCode(document.getElementById("prose"));
+  addCopyButtons(document.getElementById("prose"));
   buildTOC();
   buildReactions();
   buildRelated();
+
+  function buildRelated() {
+    const related = allPosts
+      .filter((p) => p.slug !== slug)
+      .map((p) => ({ p, shared: p.tags.filter((t) => post.tags.includes(t)).length }))
+      .filter((x) => x.shared > 0)
+      .sort((a, b) => b.shared - a.shared || new Date(b.p.date) - new Date(a.p.date))
+      .slice(0, 3)
+      .map((x) => x.p);
+
+    if (!related.length) return;
+    document.getElementById("related-section").style.display = "";
+    document.getElementById("related").innerHTML = related.map((p) => postCard(p)).join("");
+  }
+
+  // ---- shared enhancers (used by both paths) ----
+  function highlightCode(root) {
+    if (typeof hljs === "undefined") return;
+    root.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+  }
+
+  function addCopyButtons(root) {
+    root.querySelectorAll("pre").forEach((pre) => {
+      if (pre.parentElement.classList.contains("code-wrap")) return;
+      const wrap = document.createElement("div");
+      wrap.className = "code-wrap";
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "copy-btn";
+      btn.textContent = "copy";
+      btn.setAttribute("aria-label", "copy code to clipboard");
+      btn.addEventListener("click", () => {
+        navigator.clipboard.writeText(pre.innerText).then(() => {
+          btn.textContent = "copied!";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = "copy";
+            btn.classList.remove("copied");
+          }, 1500);
+        });
+      });
+      wrap.appendChild(btn);
+    });
+  }
 
   function buildTOC() {
     const prose = document.getElementById("prose");
@@ -79,7 +139,7 @@
       h.id = id;
       const li = document.createElement("li");
       if (h.tagName === "H3") li.className = "h3";
-      li.innerHTML = `<a href="#${id}">${h.textContent}</a>`;
+      li.innerHTML = `<a href="#${id}">${escapeHtml(h.textContent)}</a>`;
       list.appendChild(li);
     });
     document.getElementById("toc").style.display = "";
@@ -110,7 +170,7 @@
     bar.innerHTML = reactions
       .map(
         (r) => `
-        <button class="reaction ${store[r]?.mine ? "reacted" : ""}" data-emoji="${r}">
+        <button class="reaction ${store[r]?.mine ? "reacted" : ""}" data-emoji="${r}" aria-label="react with ${r}">
           ${icon(r)}<span class="count">${store[r]?.count || 0}</span>
         </button>`
       )
@@ -136,19 +196,5 @@
         btn.querySelector(".count").textContent = entry.count;
       });
     });
-  }
-
-  function buildRelated() {
-    const related = allPosts
-      .filter((p) => p.slug !== slug)
-      .map((p) => ({ p, shared: p.tags.filter((t) => post.tags.includes(t)).length }))
-      .filter((x) => x.shared > 0)
-      .sort((a, b) => b.shared - a.shared || new Date(b.p.date) - new Date(a.p.date))
-      .slice(0, 3)
-      .map((x) => x.p);
-
-    if (!related.length) return;
-    document.getElementById("related-section").style.display = "";
-    document.getElementById("related").innerHTML = related.map((p) => postCard(p)).join("");
   }
 })();

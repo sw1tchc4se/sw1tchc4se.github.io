@@ -24,7 +24,7 @@
       allTags
         .map(
           (t) =>
-            `<span class="tag ${state.tag === t ? "active" : ""}" data-tag="${t}">${t}</span>`
+            `<span class="tag ${state.tag === t ? "active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`
         )
         .join("");
     filterEl.querySelectorAll("[data-tag]").forEach((el) => {
@@ -58,9 +58,9 @@
         (p) => `
         <div class="timeline-item">
           <a class="card" href="${ROOT}post/${encodeURIComponent(p.slug)}/">
-            <h3>${p.title}</h3>
+            <h3>${escapeHtml(p.title)}</h3>
             <div class="meta"><span>${icon("calendar")} ${formatDate(p.date)}</span></div>
-            <p>${p.excerpt}</p>
+            <p>${escapeHtml(p.excerpt)}</p>
             <div class="tags">${tagPills(p.tags)}</div>
           </a>
         </div>`
