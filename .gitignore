@@ -14,5 +14,11 @@ __pycache__/
 .claude/
 README.md
 
+# build tooling + post editor — run locally, never deployed
+tools/
+
+# dev-only post template (not a published post)
+content/posts/_TEMPLATE.md
+
 # local-only scratch / drafts (never uploaded)
 _local/
