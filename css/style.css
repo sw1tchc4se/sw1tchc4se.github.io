@@ -206,7 +206,7 @@ img { max-width: 100%; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .divider .icon { width: 26px; height: 26px; color: var(--secondary); }
 
-.cards { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.cards { display: grid; gap: 18px; grid-template-columns: minmax(0, 640px); }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -320,7 +320,7 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
 .toc a { color: var(--muted); }
 .toc a:hover, .toc a.active { color: var(--primary-ink); text-decoration: none; }
 
-.prose { font-size: 1.05rem; max-width: 768px; }
+.prose { font-size: 1.05rem; max-width: 768px; overflow-wrap: break-word; }
 .prose h2 { font-size: 1.7rem; margin: 38px 0 12px; scroll-margin-top: 80px; }
 .prose h3 { font-size: 1.3rem; margin: 28px 0 10px; scroll-margin-top: 80px; }
 .prose p { margin: 0 0 18px; }
