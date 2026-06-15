@@ -7,6 +7,9 @@ Thumbs.db
 # logs
 *.log
 
+# python
+__pycache__/
+
 # local editor/agent config (not part of the site)
 .claude/
 README.md

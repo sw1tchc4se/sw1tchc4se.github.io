@@ -4,7 +4,20 @@ my blog where i blog → https://sw1tchc4se.github.io/
 
 ## writing a post
 
-Write it however you like (Obsidian, plain Markdown, …), then either:
+Three ways, pick whatever's comfy:
+
+**Visual editor (easiest)** — a localhost editor with a live preview rendered
+by the real site renderer, so what you see is what gets published. Save writes
+the `.md`, updates `posts.json`, and runs the build for you:
+
+```bash
+python3 tools/editor_server.py     # opens http://127.0.0.1:8800
+# write → Save & build → then:
+git add -A && git commit -m "new post" && git push
+```
+
+It can also load & edit existing posts, mark drafts, and download/copy the raw
+`.md`.
 
 **From Obsidian** — run the importer; it normalises the front-matter, copies
 embedded images into `assets/`, converts `[[wikilinks]]` to text, strips
