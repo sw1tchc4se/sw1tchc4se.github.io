@@ -1,6 +1,13 @@
 (async function () {
   buildChrome("");
 
+  // Defined up here (not lower down) so the prerendered branch below can use
+  // them — a `const` is in the temporal dead zone until its declaration runs.
+  const COPY_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  const CHECK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
   const slug = window.__POST_SLUG__ || new URLSearchParams(location.search).get("post");
   const article = document.getElementById("article");
 
@@ -101,11 +108,6 @@
     if (typeof hljs === "undefined") return;
     root.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
   }
-
-  const COPY_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
-  const CHECK_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
   function addCopyButtons(root) {
     root.querySelectorAll("pre").forEach((pre) => {

@@ -17,7 +17,7 @@
   --radius-pill: 999px;
   --font-body: "Nunito", system-ui, -apple-system, sans-serif;
   --font-head: "Fraunces", Georgia, serif;
-  --maxw: 880px;
+  --maxw: 1040px;
 }
 
 [data-theme="dark"] {
@@ -206,7 +206,7 @@ img { max-width: 100%; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .divider .icon { width: 26px; height: 26px; color: var(--secondary); }
 
-.cards { display: grid; gap: 18px; }
+.cards { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -320,7 +320,7 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
 .toc a { color: var(--muted); }
 .toc a:hover, .toc a.active { color: var(--primary-ink); text-decoration: none; }
 
-.prose { font-size: 1.05rem; }
+.prose { font-size: 1.05rem; max-width: 768px; }
 .prose h2 { font-size: 1.7rem; margin: 38px 0 12px; scroll-margin-top: 80px; }
 .prose h3 { font-size: 1.3rem; margin: 28px 0 10px; scroll-margin-top: 80px; }
 .prose p { margin: 0 0 18px; }
@@ -367,7 +367,7 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
   color: #cfc6d8;
   border-radius: 8px;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.55;
   transition: opacity 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 .copy-btn svg { width: 15px; height: 15px; display: block; }
@@ -375,8 +375,6 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
 .copy-btn:focus-visible { opacity: 1; }
 .copy-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 .copy-btn.copied { color: var(--primary); border-color: var(--primary); opacity: 1; }
-/* touch devices can't hover, so keep it gently visible */
-@media (hover: none) { .copy-btn { opacity: 0.85; } }
 .prose pre code { background: none; padding: 0; color: #f3ede0; font-size: 0.88rem; }
 .prose a { text-decoration: underline; text-underline-offset: 3px; }
 .prose img { border-radius: var(--radius-sm); box-shadow: var(--shadow); }
