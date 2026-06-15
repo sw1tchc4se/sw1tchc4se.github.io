@@ -101,6 +101,9 @@ img { max-width: 100%; }
   padding: 14px 22px;
   max-width: var(--maxw);
   margin: 0 auto;
+  /* never let the nav push wider than the screen — wrap instead */
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 .brand {
   font-family: var(--font-head);
@@ -397,6 +400,14 @@ a.tag:hover, .filter-row .tag:hover { transform: translateY(-2px); text-decorati
   .prose { font-size: 1rem; }
   .prose pre { padding: 16px 14px; tab-size: 2; -moz-tab-size: 2; }
   .prose pre code { font-size: 0.8rem; }
+
+  /* tighten the nav so brand + links + toggle fit one phone line */
+  .nav { gap: 8px; padding: 12px 14px; }
+  .brand { font-size: 1.1rem; gap: 6px; }
+  .brand .icon { width: 19px; height: 19px; }
+  .nav-links { gap: 3px; }
+  .nav-links a { padding: 6px 10px; font-size: 0.88rem; }
+  .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
 }
 
 .reactions {
